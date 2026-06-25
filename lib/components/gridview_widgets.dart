@@ -1,7 +1,7 @@
 import 'package:book_reader_tracker/models/book.dart';
 import 'package:book_reader_tracker/utilis/book_details_arguments.dart';
 import 'package:flutter/material.dart';
-
+ 
 class GridViewWidget extends StatelessWidget {
   const GridViewWidget({
     super.key,

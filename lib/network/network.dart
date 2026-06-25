@@ -1,28 +1,48 @@
 import 'dart:convert';
-import 'package:book_reader_tracker/models/book.dart';
+import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:book_reader_tracker/models/book.dart';
 
 class Network {
-  //api endpoint
-  static const String _baseUrl = 'https://www.googleapis.com/books/v1/volumes';
+  static const String _baseUrl =
+      'https://www.googleapis.com/books/v1/volumes';
 
   Future<List<Book>> searchBooks(String query) async {
-    var url = Uri.parse('$_baseUrl?q=$query');
-    var response = await http.get(url);
+    if (query.trim().isEmpty) return [];
 
-    if (response.statusCode == 200) {
-      // we have data (json)
-      var data = json.decode(response.body);
-      if (data['items'] != null && data['items'] is List) {
-        List<Book> books = (data['items'] as List<dynamic>)
-            .map((book) => Book.fromJson(book as Map<String, dynamic>))
+    final url = Uri.parse(
+      '$_baseUrl?q=${Uri.encodeComponent(query)}&maxResults=20',
+    );
+
+    print("Searching: $query");
+    print("URL: $url");
+
+    try {
+      final response = await http
+          .get(url)
+          .timeout(const Duration(seconds: 10));
+
+      print("Status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        final List items = data['items'] ?? [];
+
+        return items
+            .map((e) => Book.fromJson(e))
             .toList();
-        return books;
-      } else {
-        return [];
       }
-    } else {
-      throw Exception('Failed to load books');
+
+      if (response.statusCode == 429) {
+        throw Exception("API limit exceeded. Try later.");
+      }
+
+      throw Exception("Server error: ${response.statusCode}");
+    } on TimeoutException {
+      throw Exception("Request timeout. Check internet.");
+    } catch (e) {
+      throw Exception("Error: $e");
     }
   }
 }

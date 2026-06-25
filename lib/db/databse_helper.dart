@@ -2,7 +2,6 @@ import 'package:book_reader_tracker/models/book.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-
 class DatabaseHelper {
   static const _databaseName = 'book_database.db';
   static const _databaseVersion = 1;
